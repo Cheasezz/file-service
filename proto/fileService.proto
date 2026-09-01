@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package file;
+
+option go_package = "github.com/Cheasezz/fileService/proto/fileService/;file";
+option optimize_for = SPEED;
+
+service File {
+  rpc Upload(stream UploadReq) returns (UploadResp);
+}
+
+message UploadReq {
+  oneof payload {
+    FileInfo info = 1;
+    bytes chunk = 2;
+  }
+}
+
+message FileInfo {
+  string name = 1;
+}
+
+message UploadResp {
+  string name = 1;
+  uint64 size = 2;
+}
+
