@@ -16,3 +16,10 @@ build:
 gen-test-file:
 	cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 100000 > bin/testFile.txt
 
+.PHONY: server
+server: 
+	./bin/server -config ./config/local.yml
+
+.PHONY: client
+client:
+	./bin/client -config ./config/local.yml -path ./bin/testFile.txt
