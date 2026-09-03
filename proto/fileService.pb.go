@@ -7,11 +7,12 @@
 package file
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -105,7 +106,8 @@ func (*UploadReq_Chunk) isUploadReq_Payload() {}
 
 type FileInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	ClientUuid    string                 `protobuf:"bytes,1,opt,name=client_uuid,json=clientUuid,proto3" json:"client_uuid,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -138,6 +140,13 @@ func (x *FileInfo) ProtoReflect() protoreflect.Message {
 // Deprecated: Use FileInfo.ProtoReflect.Descriptor instead.
 func (*FileInfo) Descriptor() ([]byte, []int) {
 	return file_fileService_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *FileInfo) GetClientUuid() string {
+	if x != nil {
+		return x.ClientUuid
+	}
+	return ""
 }
 
 func (x *FileInfo) GetName() string {
@@ -207,9 +216,11 @@ const file_fileService_proto_rawDesc = "" +
 	"\tUploadReq\x12$\n" +
 	"\x04info\x18\x01 \x01(\v2\x0e.file.FileInfoH\x00R\x04info\x12\x16\n" +
 	"\x05chunk\x18\x02 \x01(\fH\x00R\x05chunkB\t\n" +
-	"\apayload\"\x1e\n" +
-	"\bFileInfo\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"4\n" +
+	"\apayload\"?\n" +
+	"\bFileInfo\x12\x1f\n" +
+	"\vclient_uuid\x18\x01 \x01(\tR\n" +
+	"clientUuid\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"4\n" +
 	"\n" +
 	"UploadResp\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
@@ -229,12 +240,14 @@ func file_fileService_proto_rawDescGZIP() []byte {
 	return file_fileService_proto_rawDescData
 }
 
-var file_fileService_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_fileService_proto_goTypes = []any{
-	(*UploadReq)(nil),  // 0: file.UploadReq
-	(*FileInfo)(nil),   // 1: file.FileInfo
-	(*UploadResp)(nil), // 2: file.UploadResp
-}
+var (
+	file_fileService_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+	file_fileService_proto_goTypes  = []any{
+		(*UploadReq)(nil),  // 0: file.UploadReq
+		(*FileInfo)(nil),   // 1: file.FileInfo
+		(*UploadResp)(nil), // 2: file.UploadResp
+	}
+)
 var file_fileService_proto_depIdxs = []int32{
 	1, // 0: file.UploadReq.info:type_name -> file.FileInfo
 	0, // 1: file.File.Upload:input_type -> file.UploadReq

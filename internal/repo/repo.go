@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/uuid"
+	"github.com/Cheasezz/fileService/internal/core"
 )
 
 type FileSystem struct {
@@ -19,7 +19,7 @@ func New() (*FileSystem, error) {
 
 	storagePath := filepath.Join(homeDir, ".fileService/uploads")
 
-	err = os.MkdirAll(storagePath, 0o755)
+	err = createDir(storagePath)
 	if err != nil {
 		return nil, err
 	}
@@ -27,13 +27,30 @@ func New() (*FileSystem, error) {
 	return &FileSystem{path: storagePath}, nil
 }
 
-func (fs *FileSystem) CreateFile(fileName string) (*os.File, error) {
+func (fs *FileSystem) CreateFile(fileInfo *core.FileInfo) (*os.File, error) {
 	var f *os.File
 
-	f, err := os.Create(fs.path + "/" + uuid.NewString() + "_" + fileName)
+	userDir := fs.path + "/" + fileInfo.UserID.String()
+
+	// If dir already exist return nil
+	err := createDir(userDir)
+	if err != nil {
+		return nil, err
+	}
+
+	f, err = os.Create(userDir + "/" + fileInfo.Name)
 	if err != nil {
 		return f, err
 	}
 
 	return f, nil
+}
+
+func createDir(path string) error {
+	err := os.MkdirAll(path, 0o755)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

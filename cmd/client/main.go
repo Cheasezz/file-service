@@ -15,6 +15,7 @@ import (
 	"github.com/Cheasezz/fileService/config"
 	"github.com/Cheasezz/fileService/pkg/logger"
 	file "github.com/Cheasezz/fileService/proto"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -66,7 +67,8 @@ func upload(fc file.FileClient, filePath string) error {
 	err = stream.Send(&file.UploadReq{
 		Payload: &file.UploadReq_Info{
 			Info: &file.FileInfo{
-				Name: filepath.Base(filePath),
+				ClientUuid: uuid.NewString(),
+				Name:       filepath.Base(filePath),
 			},
 		},
 	})
