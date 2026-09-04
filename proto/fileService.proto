@@ -7,18 +7,23 @@ option optimize_for = SPEED;
 
 service File {
   rpc Upload(stream UploadReq) returns (UploadResp);
+  rpc Download(FileInfo) returns (stream Chunk);
 }
 
 message UploadReq {
   oneof payload {
     FileInfo info = 1;
-    bytes chunk = 2;
+    Chunk chunk = 2;
   }
 }
 
 message FileInfo {
   string client_uuid = 1;
   string name = 2;
+}
+
+message Chunk {
+  bytes data = 1;
 }
 
 message UploadResp {

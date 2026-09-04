@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 
@@ -41,6 +42,20 @@ func (fs *FileSystem) CreateFile(fileInfo *core.FileInfo) (*os.File, error) {
 	f, err = os.Create(userDir + "/" + fileInfo.Name)
 	if err != nil {
 		return f, err
+	}
+
+	return f, nil
+}
+
+func (fs *FileSystem) OpenFile(fileInfo *core.FileInfo) (io.ReadCloser, error) {
+	filePath := filepath.Join(fs.path, fileInfo.UserID.String(), fileInfo.Name)
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, core.ErrFileNotFound
+		}
+		return nil, err
 	}
 
 	return f, nil

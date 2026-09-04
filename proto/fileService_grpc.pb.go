@@ -20,7 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	File_Upload_FullMethodName = "/file.File/Upload"
+	File_Upload_FullMethodName   = "/file.File/Upload"
+	File_Download_FullMethodName = "/file.File/Download"
 )
 
 // FileClient is the client API for File service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FileClient interface {
 	Upload(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadReq, UploadResp], error)
+	Download(ctx context.Context, in *FileInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Chunk], error)
 }
 
 type fileClient struct {
@@ -51,11 +53,31 @@ func (c *fileClient) Upload(ctx context.Context, opts ...grpc.CallOption) (grpc.
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type File_UploadClient = grpc.ClientStreamingClient[UploadReq, UploadResp]
 
+func (c *fileClient) Download(ctx context.Context, in *FileInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Chunk], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &File_ServiceDesc.Streams[1], File_Download_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[FileInfo, Chunk]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type File_DownloadClient = grpc.ServerStreamingClient[Chunk]
+
 // FileServer is the server API for File service.
 // All implementations must embed UnimplementedFileServer
 // for forward compatibility.
 type FileServer interface {
 	Upload(grpc.ClientStreamingServer[UploadReq, UploadResp]) error
+	Download(*FileInfo, grpc.ServerStreamingServer[Chunk]) error
 	mustEmbedUnimplementedFileServer()
 }
 
@@ -68,6 +90,10 @@ type UnimplementedFileServer struct{}
 
 func (UnimplementedFileServer) Upload(grpc.ClientStreamingServer[UploadReq, UploadResp]) error {
 	return status.Error(codes.Unimplemented, "method Upload not implemented")
+}
+
+func (UnimplementedFileServer) Download(*FileInfo, grpc.ServerStreamingServer[Chunk]) error {
+	return status.Error(codes.Unimplemented, "method Download not implemented")
 }
 func (UnimplementedFileServer) mustEmbedUnimplementedFileServer() {}
 func (UnimplementedFileServer) testEmbeddedByValue()              {}
@@ -97,6 +123,17 @@ func _File_Upload_Handler(srv interface{}, stream grpc.ServerStream) error {
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type File_UploadServer = grpc.ClientStreamingServer[UploadReq, UploadResp]
 
+func _File_Download_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(FileInfo)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(FileServer).Download(m, &grpc.GenericServerStream[FileInfo, Chunk]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type File_DownloadServer = grpc.ServerStreamingServer[Chunk]
+
 // File_ServiceDesc is the grpc.ServiceDesc for File service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -109,6 +146,11 @@ var File_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "Upload",
 			Handler:       _File_Upload_Handler,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "Download",
+			Handler:       _File_Download_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "fileService.proto",

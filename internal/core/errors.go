@@ -7,4 +7,5 @@ var (
 	ErrEmptyFileName = errors.New("empty file name")
 	ErrFirstMessage  = errors.New("first message must be file info")
 	ErrInternal      = errors.New("something went wrong")
+	ErrFileNotFound  = errors.New("file not found")
 )
