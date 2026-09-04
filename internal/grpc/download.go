@@ -7,7 +7,7 @@ import (
 )
 
 func (s *server) Download(req *file.FileInfo, stream file.File_DownloadServer) error {
-	reader, err := s.service.OpenFile(req.GetClientUuid(), req.GetName())
+	reader, err := s.service.OpenFile(req.GetClient().GetUuid(), req.GetName())
 	if err != nil {
 		return toGRPCErr(err)
 	}

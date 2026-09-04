@@ -20,7 +20,7 @@ func (s *server) Upload(stream file.File_UploadServer) error {
 		return toGRPCErr(core.ErrFirstMessage)
 	}
 
-	f, err := s.service.CreateFile(fileInfo.GetClientUuid(), fileInfo.GetName())
+	f, err := s.service.CreateFile(fileInfo.GetClient().GetUuid(), fileInfo.GetName())
 	if err != nil {
 		return toGRPCErr(err)
 	}

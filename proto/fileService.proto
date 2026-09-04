@@ -8,6 +8,7 @@ option optimize_for = SPEED;
 service File {
   rpc Upload(stream UploadReq) returns (UploadResp);
   rpc Download(FileInfo) returns (stream Chunk);
+  rpc GetAllFilesNames(Client) returns (Files);
 }
 
 message UploadReq {
@@ -18,8 +19,12 @@ message UploadReq {
 }
 
 message FileInfo {
-  string client_uuid = 1;
+  Client client = 1;
   string name = 2;
+}
+
+message Client {
+  string uuid = 1;
 }
 
 message Chunk {
@@ -31,3 +36,6 @@ message UploadResp {
   uint64 size = 2;
 }
 
+message Files {
+  repeated string names = 1;
+}

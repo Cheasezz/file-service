@@ -69,8 +69,10 @@ func main() {
 	flag.Parse()
 
 	fileInfo := &file.FileInfo{
-		ClientUuid: clientID,
-		Name:       filepath.Base(*filePath),
+		Client: &file.Client{
+			Uuid: clientID,
+		},
+		Name: filepath.Base(*filePath),
 	}
 
 	err = upload(client, *filePath)
@@ -80,11 +82,16 @@ func main() {
 		log.Info("File correct uploaded")
 	}
 
+	err = getAllFielsNames(client)
+	if err != nil {
+		log.Error("Cant get all files names: %v", err)
+	}
+
 	err = download(client, fileInfo)
 	if err != nil {
-		log.Error("Error while upload: ", err)
+		log.Error("Error while download: ", err)
 	} else {
-		log.Info("File correct uploaded")
+		log.Info("File correct download")
 	}
 
 	<-exit
@@ -105,8 +112,10 @@ func upload(fc file.FileClient, filePath string) error {
 	err = stream.Send(&file.UploadReq{
 		Payload: &file.UploadReq_Info{
 			Info: &file.FileInfo{
-				ClientUuid: clientID,
-				Name:       filepath.Base(filePath),
+				Client: &file.Client{
+					Uuid: clientID,
+				},
+				Name: filepath.Base(filePath),
 			},
 		},
 	})
@@ -193,5 +202,28 @@ func download(fc file.FileClient, fi *file.FileInfo) error {
 	}
 
 	fmt.Printf("Downloaded file: %s, bytes: %d\n", fi.Name, totalSize)
+	return nil
+}
+
+func getAllFielsNames(fc file.FileClient) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	files, err := fc.GetAllFilesNames(ctx, &file.Client{Uuid: clientID})
+	if err != nil {
+		return fmt.Errorf("error while get all files names: %v", err)
+	}
+
+	if len(files.GetNames()) == 0 {
+		fmt.Println("No one file uploaded on server")
+		return nil
+	}
+
+	fmt.Println("--- Uploaded files in server ---")
+	for _, file := range files.GetNames() {
+		fmt.Println(file)
+	}
+	fmt.Println("--- ---")
+
 	return nil
 }

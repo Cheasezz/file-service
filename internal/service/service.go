@@ -6,11 +6,13 @@ import (
 
 	"github.com/Cheasezz/fileService/internal/core"
 	"github.com/Cheasezz/fileService/pkg/logger"
+	"github.com/google/uuid"
 )
 
 type DB interface {
 	CreateFile(file *core.FileInfo) (*os.File, error)
 	OpenFile(file *core.FileInfo) (io.ReadCloser, error)
+	GetAllFilesNames(userID string) ([]string, error)
 }
 
 type Service struct {
@@ -58,4 +60,23 @@ func (s *Service) OpenFile(userID, fileName string) (io.ReadCloser, error) {
 	}
 
 	return f, nil
+}
+
+func (s *Service) GetAllFilesNames(userID string) ([]string, error) {
+	const op = "service.GetAllFilesNames"
+	log := s.log.With("op", op)
+
+	uID, err := uuid.Parse(userID)
+	if err != nil {
+		log.Error("cant parse uuid", err)
+		return nil, core.ErrInvalidUUID
+	}
+
+	files, err := s.db.GetAllFilesNames(uID.String())
+	if err != nil {
+		log.Error("cant get all files names: %v", err)
+		return nil, err
+	}
+
+	return files, nil
 }

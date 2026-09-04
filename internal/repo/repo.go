@@ -61,6 +61,25 @@ func (fs *FileSystem) OpenFile(fileInfo *core.FileInfo) (io.ReadCloser, error) {
 	return f, nil
 }
 
+func (fs *FileSystem) GetAllFilesNames(userID string) ([]string, error) {
+	var filesNames []string
+
+	entries, err := os.ReadDir(filepath.Join(fs.path, userID))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return filesNames, nil
+		}
+
+		return nil, err
+	}
+
+	for _, entrie := range entries {
+		filesNames = append(filesNames, entrie.Name())
+	}
+
+	return filesNames, nil
+}
+
 func createDir(path string) error {
 	err := os.MkdirAll(path, 0o755)
 	if err != nil {
