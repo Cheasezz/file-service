@@ -82,7 +82,7 @@ func main() {
 		log.Info("File correct uploaded")
 	}
 
-	err = getAllFielsNames(client)
+	err = getAllFilesNames(client)
 	if err != nil {
 		log.Error("Cant get all files names: %v", err)
 	}
@@ -205,7 +205,7 @@ func download(fc file.FileClient, fi *file.FileInfo) error {
 	return nil
 }
 
-func getAllFielsNames(fc file.FileClient) error {
+func getAllFilesNames(fc file.FileClient) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
