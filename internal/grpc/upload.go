@@ -9,6 +9,7 @@ import (
 
 func (s *server) Upload(stream file.File_UploadServer) error {
 	var totalSize uint64
+	var userID, filename string
 
 	req, err := stream.Recv()
 	if err != nil {
@@ -20,23 +21,29 @@ func (s *server) Upload(stream file.File_UploadServer) error {
 		return toGRPCErr(core.ErrFirstMessageFileInfo)
 	}
 
-	f, err := s.service.CreateFile(fileInfo.GetClient().GetUuid(), fileInfo.GetName())
+	userID, filename = fileInfo.GetClient().GetUuid(), fileInfo.GetName()
+
+	fw, err := s.service.CreateFile(userID, filename)
 	if err != nil {
 		return toGRPCErr(err)
 	}
-	defer f.Close()
+	defer fw.File.Close()
 
 	for {
 		req, err := stream.Recv()
 
 		if err == io.EOF {
-			return stream.SendAndClose(&file.UploadResp{Name: fileInfo.GetName(), Size: totalSize})
+			err = s.service.FinishUpload(fw, userID, filename)
+			if err != nil {
+				return toGRPCErr(err)
+			}
+			return stream.SendAndClose(&file.UploadResp{Name: filename, Size: totalSize})
 		}
 		if err != nil {
 			return toGRPCErr(err)
 		}
 
-		n, _ := f.Write(req.GetChunk().GetData())
+		n, _ := fw.Write(req.GetChunk().GetData())
 		totalSize += uint64(n)
 	}
 }

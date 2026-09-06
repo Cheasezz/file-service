@@ -14,6 +14,7 @@ type DB interface {
 	OpenFile(file *core.FileInfo) (io.ReadCloser, error)
 	GetAllFilesNames(userID string) ([]string, error)
 	GetUserHashList(userID string) (map[string]string, error)
+	UpdateHash(userID, filename, hash string) error
 }
 
 type Service struct {
@@ -23,25 +24,6 @@ type Service struct {
 
 func New(db DB, l logger.Logger) *Service {
 	return &Service{db: db, log: l}
-}
-
-func (s *Service) CreateFile(userID, fileName string) (*os.File, error) {
-	op := "service.CreateFile"
-	log := s.log.With("op", op)
-
-	fileInfo, err := core.NewFileInfo(userID, fileName)
-	if err != nil {
-		log.Error("cant create file info: ", err)
-		return nil, core.ErrInternal
-	}
-
-	f, err := s.db.CreateFile(fileInfo)
-	if err != nil {
-		log.Error("cant create file: ", err)
-		return nil, core.ErrInternal
-	}
-
-	return f, nil
 }
 
 func (s *Service) OpenFile(userID, fileName string) (io.ReadCloser, error) {
@@ -80,4 +62,13 @@ func (s *Service) GetAllFilesNames(userID string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+func (s *Service) FinishUpload(fw *fileWriter, userID, filename string) error {
+	err := fw.File.Close()
+	if err != nil {
+		return err
+	}
+
+	return s.db.UpdateHash(userID, filename, fw.Hash())
 }
