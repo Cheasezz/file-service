@@ -14,11 +14,13 @@ func toGRPCErr(err error) error {
 	switch {
 	case errors.Is(err, core.ErrEmptyFileName):
 		fallthrough
-	case errors.Is(err, core.ErrFirstMessage):
+	case errors.Is(err, core.ErrFirstMessageFileInfo):
 		fallthrough
 	case errors.Is(err, core.ErrInvalidUUID):
 		fallthrough
 	case errors.Is(err, core.ErrFileNotFound):
+		fallthrough
+	case errors.Is(err, core.ErrFirstMessageUserInfo):
 		code = codes.InvalidArgument
 	default:
 		return status.Error(codes.Internal, core.ErrInternal.Error())

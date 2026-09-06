@@ -14,3 +14,4 @@ func (s *server) GetAllFilesNames(ctx context.Context, req *file.Client) (*file.
 
 	return &file.Files{Names: filesNames}, nil
 }
+

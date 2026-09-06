@@ -9,6 +9,11 @@ type FileInfo struct {
 	Name   string
 }
 
+type SyncDecision struct {
+	Filename   string
+	NeedUpload bool
+}
+
 func NewFileInfo(userID, name string) (*FileInfo, error) {
 	id, err := uuid.Parse(userID)
 	if err != nil {

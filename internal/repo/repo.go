@@ -4,11 +4,13 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/Cheasezz/fileService/internal/core"
 )
 
 type FileSystem struct {
+	mu   sync.RWMutex
 	path string
 }
 

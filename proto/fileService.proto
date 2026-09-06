@@ -9,6 +9,7 @@ service File {
   rpc Upload(stream UploadReq) returns (UploadResp);
   rpc Download(FileInfo) returns (stream Chunk);
   rpc GetAllFilesNames(Client) returns (Files);
+  rpc CheckFiles(stream CheckFilesReq) returns (stream SyncDecision);
 }
 
 message UploadReq {
@@ -27,6 +28,18 @@ message Client {
   string uuid = 1;
 }
 
+message CheckFilesReq {
+  oneof payload {
+    Client client = 1;
+    FileMeta meta = 2;
+  }
+}
+
+message FileMeta {
+  string name = 1;
+  string hash = 2;
+}
+
 message Chunk {
   bytes data = 1;
 }
@@ -38,4 +51,9 @@ message UploadResp {
 
 message Files {
   repeated string names = 1;
+}
+
+message SyncDecision {
+  string filename = 1;
+  bool need_upload = 2;
 }

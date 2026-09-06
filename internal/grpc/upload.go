@@ -17,7 +17,7 @@ func (s *server) Upload(stream file.File_UploadServer) error {
 
 	fileInfo := req.GetInfo()
 	if fileInfo == nil {
-		return toGRPCErr(core.ErrFirstMessage)
+		return toGRPCErr(core.ErrFirstMessageFileInfo)
 	}
 
 	f, err := s.service.CreateFile(fileInfo.GetClient().GetUuid(), fileInfo.GetName())

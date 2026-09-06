@@ -23,6 +23,7 @@ const (
 	File_Upload_FullMethodName           = "/file.File/Upload"
 	File_Download_FullMethodName         = "/file.File/Download"
 	File_GetAllFilesNames_FullMethodName = "/file.File/GetAllFilesNames"
+	File_CheckFiles_FullMethodName       = "/file.File/CheckFiles"
 )
 
 // FileClient is the client API for File service.
@@ -32,6 +33,7 @@ type FileClient interface {
 	Upload(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadReq, UploadResp], error)
 	Download(ctx context.Context, in *FileInfo, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Chunk], error)
 	GetAllFilesNames(ctx context.Context, in *Client, opts ...grpc.CallOption) (*Files, error)
+	CheckFiles(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[CheckFilesReq, SyncDecision], error)
 }
 
 type fileClient struct {
@@ -84,6 +86,19 @@ func (c *fileClient) GetAllFilesNames(ctx context.Context, in *Client, opts ...g
 	return out, nil
 }
 
+func (c *fileClient) CheckFiles(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[CheckFilesReq, SyncDecision], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &File_ServiceDesc.Streams[2], File_CheckFiles_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[CheckFilesReq, SyncDecision]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type File_CheckFilesClient = grpc.BidiStreamingClient[CheckFilesReq, SyncDecision]
+
 // FileServer is the server API for File service.
 // All implementations must embed UnimplementedFileServer
 // for forward compatibility.
@@ -91,6 +106,7 @@ type FileServer interface {
 	Upload(grpc.ClientStreamingServer[UploadReq, UploadResp]) error
 	Download(*FileInfo, grpc.ServerStreamingServer[Chunk]) error
 	GetAllFilesNames(context.Context, *Client) (*Files, error)
+	CheckFiles(grpc.BidiStreamingServer[CheckFilesReq, SyncDecision]) error
 	mustEmbedUnimplementedFileServer()
 }
 
@@ -111,6 +127,10 @@ func (UnimplementedFileServer) Download(*FileInfo, grpc.ServerStreamingServer[Ch
 
 func (UnimplementedFileServer) GetAllFilesNames(context.Context, *Client) (*Files, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAllFilesNames not implemented")
+}
+
+func (UnimplementedFileServer) CheckFiles(grpc.BidiStreamingServer[CheckFilesReq, SyncDecision]) error {
+	return status.Error(codes.Unimplemented, "method CheckFiles not implemented")
 }
 func (UnimplementedFileServer) mustEmbedUnimplementedFileServer() {}
 func (UnimplementedFileServer) testEmbeddedByValue()              {}
@@ -169,6 +189,13 @@ func _File_GetAllFilesNames_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _File_CheckFiles_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(FileServer).CheckFiles(&grpc.GenericServerStream[CheckFilesReq, SyncDecision]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type File_CheckFilesServer = grpc.BidiStreamingServer[CheckFilesReq, SyncDecision]
+
 // File_ServiceDesc is the grpc.ServiceDesc for File service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -191,6 +218,12 @@ var File_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "Download",
 			Handler:       _File_Download_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "CheckFiles",
+			Handler:       _File_CheckFiles_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "fileService.proto",
