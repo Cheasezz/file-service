@@ -285,7 +285,8 @@ func (*CheckFilesReq_Meta) isCheckFilesReq_Payload() {}
 type FileMeta struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Hash          string                 `protobuf:"bytes,2,opt,name=hash,proto3" json:"hash,omitempty"`
+	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	Hash          string                 `protobuf:"bytes,3,opt,name=hash,proto3" json:"hash,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -323,6 +324,13 @@ func (*FileMeta) Descriptor() ([]byte, []int) {
 func (x *FileMeta) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *FileMeta) GetPath() string {
+	if x != nil {
+		return x.Path
 	}
 	return ""
 }
@@ -477,7 +485,8 @@ func (x *Files) GetNames() []string {
 type SyncDecision struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Filename      string                 `protobuf:"bytes,1,opt,name=filename,proto3" json:"filename,omitempty"`
-	NeedUpload    bool                   `protobuf:"varint,2,opt,name=need_upload,json=needUpload,proto3" json:"need_upload,omitempty"`
+	Filepath      string                 `protobuf:"bytes,2,opt,name=filepath,proto3" json:"filepath,omitempty"`
+	NeedUpload    bool                   `protobuf:"varint,3,opt,name=need_upload,json=needUpload,proto3" json:"need_upload,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -519,6 +528,13 @@ func (x *SyncDecision) GetFilename() string {
 	return ""
 }
 
+func (x *SyncDecision) GetFilepath() string {
+	if x != nil {
+		return x.Filepath
+	}
+	return ""
+}
+
 func (x *SyncDecision) GetNeedUpload() bool {
 	if x != nil {
 		return x.NeedUpload
@@ -543,10 +559,11 @@ const file_fileService_proto_rawDesc = "" +
 	"\rCheckFilesReq\x12&\n" +
 	"\x06client\x18\x01 \x01(\v2\f.file.ClientH\x00R\x06client\x12$\n" +
 	"\x04meta\x18\x02 \x01(\v2\x0e.file.FileMetaH\x00R\x04metaB\t\n" +
-	"\apayload\"2\n" +
+	"\apayload\"F\n" +
 	"\bFileMeta\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
-	"\x04hash\x18\x02 \x01(\tR\x04hash\"\x1b\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\x12\x12\n" +
+	"\x04hash\x18\x03 \x01(\tR\x04hash\"\x1b\n" +
 	"\x05Chunk\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\"4\n" +
 	"\n" +
@@ -554,10 +571,11 @@ const file_fileService_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04size\x18\x02 \x01(\x04R\x04size\"\x1d\n" +
 	"\x05Files\x12\x14\n" +
-	"\x05names\x18\x01 \x03(\tR\x05names\"K\n" +
+	"\x05names\x18\x01 \x03(\tR\x05names\"g\n" +
 	"\fSyncDecision\x12\x1a\n" +
-	"\bfilename\x18\x01 \x01(\tR\bfilename\x12\x1f\n" +
-	"\vneed_upload\x18\x02 \x01(\bR\n" +
+	"\bfilename\x18\x01 \x01(\tR\bfilename\x12\x1a\n" +
+	"\bfilepath\x18\x02 \x01(\tR\bfilepath\x12\x1f\n" +
+	"\vneed_upload\x18\x03 \x01(\bR\n" +
 	"needUpload2\xca\x01\n" +
 	"\x04File\x12-\n" +
 	"\x06Upload\x12\x0f.file.UploadReq\x1a\x10.file.UploadResp(\x01\x12)\n" +
@@ -592,6 +610,7 @@ var (
 		(*SyncDecision)(nil),  // 8: file.SyncDecision
 	}
 )
+
 var file_fileService_proto_depIdxs = []int32{
 	1, // 0: file.UploadReq.info:type_name -> file.FileInfo
 	5, // 1: file.UploadReq.chunk:type_name -> file.Chunk

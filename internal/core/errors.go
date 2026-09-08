@@ -9,4 +9,5 @@ var (
 	ErrInternal             = errors.New("something went wrong")
 	ErrFileNotFound         = errors.New("file not found")
 	ErrFirstMessageUserInfo = errors.New("first message must be user info")
+	ErrEmptyFileMeta        = errors.New("empty file meta")
 )

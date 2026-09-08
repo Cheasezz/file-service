@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -9,6 +12,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
@@ -22,9 +26,64 @@ import (
 
 var (
 	filePath = flag.String("path", "", "File path for upload")
+	dirPath  = flag.String("dir", "", "Dir path for upload files (no nested files)")
 	savePath string
 	clientID string
 )
+
+type LocalFile struct {
+	Path, Name, Hash string
+}
+
+func collectFiles(paths []string) ([]LocalFile, error) {
+	files := make([]LocalFile, 0, len(paths))
+
+	for _, path := range paths {
+		hash, err := hashFile(path)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, LocalFile{
+			Name: filepath.Base(path),
+			Path: path,
+			Hash: hash,
+		})
+	}
+
+	return files, nil
+}
+
+func collectFilesFromDir(dir string) ([]LocalFile, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("cant read dir: %w", err)
+	}
+
+	paths := make([]string, 0, len(entries))
+	for _, e := range entries {
+		if !e.IsDir() {
+			paths = append(paths, filepath.Join(dir, e.Name()))
+		}
+	}
+
+	return collectFiles(paths)
+}
+
+func hashFile(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", fmt.Errorf("cant open file %s: %w", path, err)
+	}
+	defer f.Close()
+
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, f); err != nil {
+		return "", fmt.Errorf("cant calculate hash for file %s: %w", path, err)
+	}
+
+	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
 
 func main() {
 	var opts []grpc.DialOption
@@ -92,6 +151,18 @@ func main() {
 		log.Error("Error while download: ", err)
 	} else {
 		log.Info("File correct download")
+	}
+
+	files, err := collectFilesFromDir(*dirPath)
+	if err != nil {
+		log.Error("Error while collect files from dir: ", err)
+	}
+
+	err = syncAndUpload(client, files)
+	if err != nil {
+		log.Error("Error while syncAndUpload: ", err)
+	} else {
+		log.Info("Files syncronized and uploaded on server")
 	}
 
 	<-exit
@@ -224,6 +295,115 @@ func getAllFilesNames(fc file.FileClient) error {
 		fmt.Println(file)
 	}
 	fmt.Println("--- ---")
+
+	return nil
+}
+
+func checkFiles(fc file.FileClient, files []LocalFile) (<-chan LocalFile, <-chan error) {
+	toUpload := make(chan LocalFile, len(files))
+	errCh := make(chan error, 1)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+
+	go func() {
+		defer close(toUpload)
+		defer close(errCh)
+		defer cancel()
+
+		stream, err := fc.CheckFiles(ctx)
+		if err != nil {
+			errCh <- fmt.Errorf("cant open CheckFiles stream: %v", err)
+			return
+		}
+
+		if err := stream.Send(&file.CheckFilesReq{
+			Payload: &file.CheckFilesReq_Client{
+				Client: &file.Client{
+					Uuid: clientID,
+				},
+			},
+		}); err != nil {
+			errCh <- fmt.Errorf("cand send clien id: %w", err)
+			return
+		}
+
+		go func() {
+			for _, f := range files {
+				if err := stream.Send(&file.CheckFilesReq{
+					Payload: &file.CheckFilesReq_Meta{
+						Meta: &file.FileMeta{
+							Name: f.Name,
+							Path: f.Path,
+							Hash: f.Hash,
+						},
+					},
+				}); err != nil {
+					errCh <- fmt.Errorf("cant check file %s: %w", f.Name, err)
+					return
+				}
+			}
+			if err := stream.CloseSend(); err != nil {
+				errCh <- fmt.Errorf("cant closeSend in checkFiles: %w", err)
+				return
+			}
+		}()
+
+		for {
+			decision, err := stream.Recv()
+
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				errCh <- fmt.Errorf("error recv decision: %v", err)
+				return
+			}
+			fmt.Printf("File decision %s: %t\n", decision.GetFilename(), decision.GetNeedUpload())
+			if decision.GetNeedUpload() {
+				toUpload <- LocalFile{Name: decision.GetFilename(), Path: decision.GetFilepath()}
+			}
+		}
+	}()
+
+	return toUpload, errCh
+}
+
+func syncAndUpload(fc file.FileClient, files []LocalFile) error {
+	var errs []error
+	const workers = 3
+	uploadErrs := make(chan error, len(files))
+	var wg sync.WaitGroup
+
+	toUpload, syncErrCh := checkFiles(fc, files)
+
+	for range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for f := range toUpload {
+				err := upload(fc, f.Path)
+				if err != nil {
+					uploadErrs <- fmt.Errorf("upload %s: %w", f.Name, err)
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
+	close(uploadErrs)
+
+	if syncErr := <-syncErrCh; syncErr != nil {
+		errs = append(errs, syncErr)
+	}
+
+	for err := range uploadErrs {
+		errs = append(errs, err)
+	}
+
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
 
 	return nil
 }

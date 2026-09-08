@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 .PHONY: gen-pb
 gen-pb:
 	@echo -e "=== protoc: Компиляция fileService.proto ===\n" 
@@ -12,9 +14,13 @@ gen-pb:
 build:
 	go build -o bin/ ./cmd/...
 
-.PHONY: gen-test-file
-gen-test-file:
-	cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 100000 > bin/testFile.txt
+.PHONY: gen-test-files
+gen-test-files:
+	mkdir -p bin/files
+	for i in {1..5}; do \
+		size_kb=$$((1000 + RANDOM % 9001)); \
+		dd if=/dev/urandom bs=1K count="$$size_kb" 2>/dev/null | tr -dc 'a-zA-Z0-9' > "bin/files/testFile_$${i}_$${size_kb}KB.txt"; \
+	done
 
 .PHONY: server
 server: 
@@ -22,4 +28,4 @@ server:
 
 .PHONY: client
 client:
-	./bin/client -config ./config/local.yml -path ./bin/testFile.txt
+	./bin/client -config ./config/local.yml -path ./bin/files/testFile_1* -dir ./bin/files/

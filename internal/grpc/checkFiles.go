@@ -23,19 +23,25 @@ func (s *server) CheckFiles(stream file.File_CheckFilesServer) error {
 	}
 
 	for {
-		fileMeta := req.GetMeta()
+		req, err := stream.Recv()
 
 		if err == io.EOF {
-			break
+			return nil
 		}
 		if err != nil {
 			return toGRPCErr(err)
+		}
+
+		fileMeta := req.GetMeta()
+		if fileMeta == nil {
+			return toGRPCErr(core.ErrEmptyFileMeta)
 		}
 
 		isSame := hl.CompareHash(fileMeta.GetName(), fileMeta.GetHash())
 
 		sendErr := stream.Send(&file.SyncDecision{
 			Filename:   fileMeta.GetName(),
+			Filepath:   fileMeta.GetPath(),
 			NeedUpload: !isSame,
 		})
 		if sendErr != nil {
@@ -43,5 +49,4 @@ func (s *server) CheckFiles(stream file.File_CheckFilesServer) error {
 		}
 
 	}
-	return nil
 }
