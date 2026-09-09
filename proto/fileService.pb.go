@@ -582,7 +582,7 @@ const file_fileService_proto_rawDesc = "" +
 	"\bDownload\x12\x0e.file.FileInfo\x1a\v.file.Chunk0\x01\x12-\n" +
 	"\x10GetAllFilesNames\x12\f.file.Client\x1a\v.file.Files\x129\n" +
 	"\n" +
-	"CheckFiles\x12\x13.file.CheckFilesReq\x1a\x12.file.SyncDecision(\x010\x01B;H\x01Z7github.com/Cheasezz/fileService/proto/fileService/;fileb\x06proto3"
+	"CheckFiles\x12\x13.file.CheckFilesReq\x1a\x12.file.SyncDecision(\x010\x01B9Z7github.com/Cheasezz/fileService/proto/fileService/;fileb\x06proto3"
 
 var (
 	file_fileService_proto_rawDescOnce sync.Once

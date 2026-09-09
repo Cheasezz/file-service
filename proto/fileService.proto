@@ -3,7 +3,6 @@ syntax = "proto3";
 package file;
 
 option go_package = "github.com/Cheasezz/fileService/proto/fileService/;file";
-option optimize_for = SPEED;
 
 service File {
   rpc Upload(stream UploadReq) returns (UploadResp);
