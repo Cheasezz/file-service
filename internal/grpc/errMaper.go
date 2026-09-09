@@ -18,12 +18,12 @@ func toGRPCErr(err error) error {
 		fallthrough
 	case errors.Is(err, core.ErrInvalidUUID):
 		fallthrough
-	case errors.Is(err, core.ErrFileNotFound):
-		fallthrough
 	case errors.Is(err, core.ErrFirstMessageUserInfo):
 		fallthrough
 	case errors.Is(err, core.ErrEmptyFileMeta):
 		code = codes.InvalidArgument
+	case errors.Is(err, core.ErrFileNotFound):
+		code = codes.NotFound
 	default:
 		return status.Error(codes.Internal, core.ErrInternal.Error())
 	}
