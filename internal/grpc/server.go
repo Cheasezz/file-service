@@ -93,5 +93,12 @@ func (a *App) Run() error {
 }
 
 func (a *App) Close() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	defer cancel()
+
 	a.server.GracefulStop()
+
+	<-ctx.Done()
+
+	a.server.Stop()
 }
