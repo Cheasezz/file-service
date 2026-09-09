@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -32,7 +31,8 @@ var (
 )
 
 type LocalFile struct {
-	Path, Name, Hash string
+	Path, Name string
+	Hash       []byte
 }
 
 func collectFiles(paths []string) ([]LocalFile, error) {
@@ -70,19 +70,19 @@ func collectFilesFromDir(dir string) ([]LocalFile, error) {
 	return collectFiles(paths)
 }
 
-func hashFile(path string) (string, error) {
+func hashFile(path string) ([]byte, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return "", fmt.Errorf("cant open file %s: %w", path, err)
+		return nil, fmt.Errorf("cant open file %s: %w", path, err)
 	}
 	defer f.Close()
 
 	hasher := sha256.New()
 	if _, err := io.Copy(hasher, f); err != nil {
-		return "", fmt.Errorf("cant calculate hash for file %s: %w", path, err)
+		return nil, fmt.Errorf("cant calculate hash for file %s: %w", path, err)
 	}
 
-	return hex.EncodeToString(hasher.Sum(nil)), nil
+	return hasher.Sum(nil), nil
 }
 
 func main() {

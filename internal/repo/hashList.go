@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 )
 
-func (fs *FileSystem) GetUserHashList(userID string) (map[string]string, error) {
+func (fs *FileSystem) GetUserHashList(userID string) (map[string][]byte, error) {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
 
 	return fs.readHashListFromDisk(userID)
 }
 
-func (fs *FileSystem) UpdateHash(userID, filename, hash string) error {
+func (fs *FileSystem) UpdateHash(userID, filename string, hash []byte) error {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 
@@ -27,13 +27,13 @@ func (fs *FileSystem) UpdateHash(userID, filename, hash string) error {
 	return fs.writeHashListToDisk(userID, hl)
 }
 
-func (fs *FileSystem) readHashListFromDisk(userID string) (map[string]string, error) {
-	var hl map[string]string
+func (fs *FileSystem) readHashListFromDisk(userID string) (map[string][]byte, error) {
+	var hl map[string][]byte
 
 	data, err := os.ReadFile(filepath.Join(fs.path, userID, ".hash_list.json"))
 
 	if os.IsNotExist(err) {
-		return map[string]string{}, nil
+		return map[string][]byte{}, nil
 	}
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (fs *FileSystem) readHashListFromDisk(userID string) (map[string]string, er
 	return hl, nil
 }
 
-func (fs *FileSystem) writeHashListToDisk(userID string, hashList map[string]string) error {
+func (fs *FileSystem) writeHashListToDisk(userID string, hashList map[string][]byte) error {
 	data, err := json.MarshalIndent(hashList, "", " ")
 	if err != nil {
 		return err

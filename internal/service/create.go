@@ -2,7 +2,6 @@ package service
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
 	"hash"
 	"os"
 
@@ -38,6 +37,6 @@ func (fw *fileWriter) Write(data []byte) (int, error) {
 	return fw.File.Write(data)
 }
 
-func (fw *fileWriter) Hash() string {
-	return hex.EncodeToString([]byte(fw.hasher.Sum(nil)))
+func (fw *fileWriter) Hash() []byte {
+	return fw.hasher.Sum(nil)
 }

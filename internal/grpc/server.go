@@ -36,7 +36,7 @@ type App struct {
 func New(l logger.Logger, cfg Config, s *service.Service) *App {
 	loggingOpts := []logging.Option{
 		logging.WithLogOnEvents(
-			logging.PayloadReceived, logging.PayloadSent,
+		// logging.PayloadReceived, logging.PayloadSent,
 		),
 	}
 

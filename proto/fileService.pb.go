@@ -286,7 +286,7 @@ type FileMeta struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
-	Hash          string                 `protobuf:"bytes,3,opt,name=hash,proto3" json:"hash,omitempty"`
+	Hash          []byte                 `protobuf:"bytes,3,opt,name=hash,proto3" json:"hash,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -335,11 +335,11 @@ func (x *FileMeta) GetPath() string {
 	return ""
 }
 
-func (x *FileMeta) GetHash() string {
+func (x *FileMeta) GetHash() []byte {
 	if x != nil {
 		return x.Hash
 	}
-	return ""
+	return nil
 }
 
 type Chunk struct {
@@ -563,7 +563,7 @@ const file_fileService_proto_rawDesc = "" +
 	"\bFileMeta\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x12\n" +
-	"\x04hash\x18\x03 \x01(\tR\x04hash\"\x1b\n" +
+	"\x04hash\x18\x03 \x01(\fR\x04hash\"\x1b\n" +
 	"\x05Chunk\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\"4\n" +
 	"\n" +
@@ -610,7 +610,6 @@ var (
 		(*SyncDecision)(nil),  // 8: file.SyncDecision
 	}
 )
-
 var file_fileService_proto_depIdxs = []int32{
 	1, // 0: file.UploadReq.info:type_name -> file.FileInfo
 	5, // 1: file.UploadReq.chunk:type_name -> file.Chunk

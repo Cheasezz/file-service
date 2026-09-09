@@ -13,8 +13,8 @@ type DB interface {
 	CreateFile(file *core.FileInfo) (*os.File, error)
 	OpenFile(file *core.FileInfo) (io.ReadCloser, error)
 	GetAllFilesNames(userID string) ([]string, error)
-	GetUserHashList(userID string) (map[string]string, error)
-	UpdateHash(userID, filename, hash string) error
+	GetUserHashList(userID string) (map[string][]byte, error)
+	UpdateHash(userID, filename string, hash []byte) error
 }
 
 type Service struct {
