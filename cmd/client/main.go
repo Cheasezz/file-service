@@ -378,17 +378,14 @@ func syncAndUpload(fc file.FileClient, files []LocalFile) error {
 	toUpload, syncErrCh := checkFiles(fc, files)
 
 	for range workers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for f := range toUpload {
 				err := upload(fc, f.Path)
 				if err != nil {
 					uploadErrs <- fmt.Errorf("upload %s: %w", f.Name, err)
 				}
 			}
-		}()
+		})
 	}
 
 	wg.Wait()
