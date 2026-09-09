@@ -65,10 +65,5 @@ func (s *Service) GetAllFilesNames(userID string) ([]string, error) {
 }
 
 func (s *Service) FinishUpload(fw *fileWriter, userID, filename string) error {
-	err := fw.File.Close()
-	if err != nil {
-		return err
-	}
-
 	return s.db.UpdateHash(userID, filename, fw.Hash())
 }
