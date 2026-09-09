@@ -120,6 +120,7 @@ func main() {
 	conn, err := grpc.NewClient("127.0.0.1:"+strconv.Itoa(cfg.GRPC.Port), opts...)
 	if err != nil {
 		log.Error("fail to dial: %v", err)
+		return
 	}
 	defer conn.Close()
 
