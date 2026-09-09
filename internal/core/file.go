@@ -1,6 +1,8 @@
 package core
 
 import (
+	"path/filepath"
+
 	"github.com/google/uuid"
 )
 
@@ -22,6 +24,10 @@ func NewFileInfo(userID, name string) (*FileInfo, error) {
 
 	if name == "" {
 		return nil, ErrEmptyFileName
+	}
+
+	if name != filepath.Base(name) {
+		return nil, ErrInvalidFileName
 	}
 
 	return &FileInfo{UserID: id, Name: name}, nil

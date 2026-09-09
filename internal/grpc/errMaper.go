@@ -21,6 +21,8 @@ func toGRPCErr(err error) error {
 	case errors.Is(err, core.ErrFirstMessageUserInfo):
 		fallthrough
 	case errors.Is(err, core.ErrEmptyFileMeta):
+		fallthrough
+	case errors.Is(err, core.ErrInvalidFileName):
 		code = codes.InvalidArgument
 	case errors.Is(err, core.ErrFileNotFound):
 		code = codes.NotFound

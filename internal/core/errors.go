@@ -10,4 +10,5 @@ var (
 	ErrFileNotFound         = errors.New("file not found")
 	ErrFirstMessageUserInfo = errors.New("first message must be user info")
 	ErrEmptyFileMeta        = errors.New("empty file meta")
+	ErrInvalidFileName      = errors.New("bad file name")
 )
