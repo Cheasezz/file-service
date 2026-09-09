@@ -93,12 +93,20 @@ func (a *App) Run() error {
 }
 
 func (a *App) Close() {
+	shutdownDone := make(chan struct{})
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 
-	a.server.GracefulStop()
+	go func() {
+		a.server.GracefulStop()
+		close(shutdownDone)
+	}()
 
-	<-ctx.Done()
-
-	a.server.Stop()
+	select {
+	case <-shutdownDone:
+		a.log.Info("Gracefuly stoped")
+	case <-ctx.Done():
+		a.log.Info("Stoped by context timeout")
+		a.server.Stop()
+	}
 }
