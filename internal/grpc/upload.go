@@ -43,7 +43,15 @@ func (s *server) Upload(stream file.File_UploadServer) error {
 			return toGRPCErr(err)
 		}
 
-		n, _ := fw.Write(req.GetChunk().GetData())
+		chunk := req.GetChunk()
+		if chunk == nil {
+			return toGRPCErr(core.ErrEmptyChunk)
+		}
+
+		n, err := fw.Write(req.GetChunk().GetData())
+		if err != nil {
+			return toGRPCErr(err)
+		}
 		totalSize += uint64(n)
 	}
 }
