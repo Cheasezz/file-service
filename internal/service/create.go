@@ -20,7 +20,7 @@ func (s *Service) CreateFile(userID, fileName string) (*fileWriter, error) {
 	fileInfo, err := core.NewFileInfo(userID, fileName)
 	if err != nil {
 		log.Error("cant create file info: ", err)
-		return nil, core.ErrInternal
+		return nil, err
 	}
 
 	f, err := s.db.CreateFile(fileInfo)
