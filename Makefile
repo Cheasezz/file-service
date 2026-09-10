@@ -29,3 +29,7 @@ server:
 .PHONY: client
 client:
 	./bin/client -config ./config/local.yml -path ./bin/files/testFile_1* -dir ./bin/files/
+
+.PHONY: clear
+clear:
+	$(if $(filter Windows_NT,$(OS)), rmdir /s /q "$(USERPROFILE)\\.fileService", rm -rf "$(HOME)/.fileService")
