@@ -14,7 +14,7 @@ The main goal of the project is to explore and demonstrate the different gRPC co
 - Implement file synchronization using SHA-256 hashes.
 - Separate transport, service and filesystem layers.
 
-## Features
+## gRPC Api
 
 The service provides four gRPC methods:
 
@@ -24,26 +24,6 @@ The service provides four gRPC methods:
 | `Download` | Server streaming | Download a file in chunks |
 | `GetAllFilesNames` | Unary | Get stored file names |
 | `CheckFiles` | Bidirectional streaming | Compare local and server file hashes |
-
-### File synchronization
-
-Before uploading files, the client calculates their SHA-256 hashes and sends the metadata to the server through a bidirectional stream.
-
-```text
-Client                         Server
-  │                              │
-  │ File metadata + hash ──────► │
-  │                              │
-  │ ◄────── SyncDecision ─────── │
-  │                              │
-  │ File differs?                │
-  │        │                     │
-  │        └── yes ─────────────►│ Upload
-  │                              │
-  └──────────────────────────────┘
-```
-
-Only files that are missing or have a different hash are uploaded.
 
 ## gRPC Streaming
 
@@ -77,6 +57,7 @@ Client ◄── decision ◄── decision ◄── decision ◄── Server
 - SHA-256 hashes are calculated incrementally during upload.
 - File downloads are streamed directly to the destination file.
 - The bidirectional `CheckFiles` stream can send and receive data concurrently.
+- Files sync. Only files that are missing or have a different hash are uploaded.
 - Multiple workers can upload files in parallel.
 - Basic gRPC error mapping is implemented:
   - invalid client data → `InvalidArgument`
