@@ -131,17 +131,3 @@ make clear
 
 The server stores uploaded files in **your-os-user-home-dir/.fileService/uploads**.  
 The client stores downloaded files in **your-os-user-home-dir/.fileService/download**.
-
-## Project Scope
-
-This is primarily a **learning and demonstration project focused on gRPC streaming** rather than a production-ready file storage system.
-
-The filesystem is intentionally used as the storage layer so that the main focus remains on:
-
-- gRPC streaming
-- protobuf message design
-- chunked data transfer
-- stream lifecycle
-- concurrency
-- file synchronization
-- error handling
